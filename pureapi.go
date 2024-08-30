@@ -1,9 +1,13 @@
 package pureapi
 
 import (
+	"errors"
+
 	"github.com/0x16f/pureapi/src/usecase/webapi"
 	"github.com/0x16f/pureapi/src/usecase/wsconnect"
 )
+
+var ErrTokenExpired = webapi.ErrTokenExpired
 
 type GetUsersFilters wsconnect.GetUsersFilters
 
@@ -37,9 +41,29 @@ func (a *PureAPI) Close() error {
 }
 
 func (a *PureAPI) Like(userId string) error {
-	return a.webapi.Like(userId)
+	if err := a.webapi.Like(userId); err != nil {
+		if errors.Is(err, webapi.ErrTokenExpired) {
+			return ErrTokenExpired
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (a *PureAPI) GetUsers(lastID int, filters GetUsersFilters) (Users, error) {
 	return a.wsapi.GetUsers(lastID, wsconnect.GetUsersFilters(filters))
+}
+
+func (a *PureAPI) SetLocation(lat, lng float64) error {
+	if err := a.webapi.SetLocation(lat, lng); err != nil {
+		if errors.Is(err, webapi.ErrTokenExpired) {
+			return ErrTokenExpired
+		}
+
+		return err
+	}
+
+	return nil
 }
