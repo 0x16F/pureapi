@@ -118,7 +118,7 @@ func (s Service) SetLocation(lat, lng float64) error {
 	return nil
 }
 
-func (s Service) RefreshToken() (*RefreshTokenResp, error) {
+func (s *Service) RefreshToken() (*RefreshTokenResp, error) {
 	payloadBytes, err := json.Marshal(map[string]any{
 		"api_key":       "48d95c045bfbf6544448fe07744e558b",
 		"refresh_token": s.refreshToken,
