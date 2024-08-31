@@ -156,7 +156,7 @@ func (s *Service) RefreshToken() (*RefreshTokenResp, error) {
 		return nil, err
 	}
 
-	s.accesToken = resp.AccessToken
+	s.accesToken = "Bearer " + resp.AccessToken
 	s.refreshToken = resp.RefreshToken
 
 	return &resp, nil
