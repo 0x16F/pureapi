@@ -8,8 +8,10 @@ import (
 )
 
 var ErrTokenExpired = webapi.ErrTokenExpired
+var ErrFailedToRefreshToken = webapi.ErrFailedToRefreshToken
 
 type GetUsersFilters wsconnect.GetUsersFilters
+type RefreshTokenResp webapi.RefreshTokenResp
 
 type Users []wsconnect.User
 
@@ -18,13 +20,18 @@ type PureAPI struct {
 	webapi *webapi.Service
 }
 
-func New(wsToken, apiToken string) (*PureAPI, error) {
-	conn, err := wsconnect.New(wsToken)
+func New(refreshToken, accessToken string) (*PureAPI, error) {
+	api := webapi.New(refreshToken, accessToken)
+
+	wsToken, err := api.GetWebsocketToken()
 	if err != nil {
 		return nil, err
 	}
 
-	api := webapi.New(apiToken)
+	conn, err := wsconnect.New(wsToken)
+	if err != nil {
+		return nil, err
+	}
 
 	return &PureAPI{
 		wsapi:  conn,
@@ -66,4 +73,19 @@ func (a *PureAPI) SetLocation(lat, lng float64) error {
 	}
 
 	return nil
+}
+
+func (a *PureAPI) RefreshToken() (*RefreshTokenResp, error) {
+	resp, err := a.webapi.RefreshToken()
+	if err != nil {
+		if errors.Is(err, webapi.ErrTokenExpired) {
+			return nil, ErrTokenExpired
+		}
+
+		return nil, err
+	}
+
+	adapted := RefreshTokenResp(*resp)
+
+	return &adapted, nil
 }
