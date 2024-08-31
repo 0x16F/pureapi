@@ -118,24 +118,26 @@ func (s Service) SetLocation(lat, lng float64) error {
 	return nil
 }
 
-func (s *Service) RefreshToken() (*RefreshTokenResp, error) {
+func RefreshToken(refreshToken string) (*RefreshTokenResp, error) {
 	payloadBytes, err := json.Marshal(map[string]any{
 		"api_key":       "48d95c045bfbf6544448fe07744e558b",
-		"refresh_token": s.refreshToken,
+		"refresh_token": refreshToken,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth-companion-service/v1/refresh-token/", s.uri),
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth-companion-service/v1/refresh-token/", uri),
 		bytes.NewReader(payloadBytes))
 
 	if err != nil {
 		return nil, err
 	}
 
-	s.addHeaders(req)
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/117.0")
+	req.Header.Add("x-js-user-agent", "PureFTP/4.2.2 (JS 1.0; OS X 10.15 MacIntel Firefox 117.0; en-US) SoulSDK/0.26.0 (JS)")
+	req.Header.Add("Content-Type", "application/json")
 
 	client := http.Client{}
 
@@ -155,9 +157,6 @@ func (s *Service) RefreshToken() (*RefreshTokenResp, error) {
 	if err = json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		return nil, err
 	}
-
-	s.accesToken = "Bearer " + resp.AccessToken
-	s.refreshToken = resp.RefreshToken
 
 	return &resp, nil
 }

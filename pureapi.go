@@ -25,19 +25,7 @@ func New(refreshToken, accessToken string) (*PureAPI, error) {
 
 	wsToken, err := api.GetWebsocketToken()
 	if err != nil {
-		if errors.Is(err, ErrTokenExpired) {
-			_, err = api.RefreshToken()
-			if err != nil {
-				return nil, err
-			}
-
-			wsToken, err = api.GetWebsocketToken()
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	conn, err := wsconnect.New(wsToken)
@@ -87,8 +75,8 @@ func (a *PureAPI) SetLocation(lat, lng float64) error {
 	return nil
 }
 
-func (a *PureAPI) RefreshToken() (*RefreshTokenResp, error) {
-	resp, err := a.webapi.RefreshToken()
+func (a *PureAPI) RefreshToken(refreshToken string) (*RefreshTokenResp, error) {
+	resp, err := webapi.RefreshToken(refreshToken)
 	if err != nil {
 		if errors.Is(err, webapi.ErrTokenExpired) {
 			return nil, ErrTokenExpired
