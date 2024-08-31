@@ -25,7 +25,19 @@ func New(refreshToken, accessToken string) (*PureAPI, error) {
 
 	wsToken, err := api.GetWebsocketToken()
 	if err != nil {
-		return nil, err
+		if errors.Is(err, ErrTokenExpired) {
+			_, err = api.RefreshToken()
+			if err != nil {
+				return nil, err
+			}
+
+			wsToken, err = api.GetWebsocketToken()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	conn, err := wsconnect.New(wsToken)
