@@ -128,7 +128,7 @@ func (s Service) RefreshToken() (*RefreshTokenResp, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/auth-companion-service/v1/refresh-token/", s.uri),
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth-companion-service/v1/refresh-token/", s.uri),
 		bytes.NewReader(payloadBytes))
 
 	if err != nil {
